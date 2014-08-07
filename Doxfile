@@ -1,8 +1,23 @@
 server :vagrant, {
-	:address => "localhost",
-	:port => 22,
+	:host => "localhost",
+	:user => 'vagrant',
+	:ssh => {
+		:port => 2222,
+		:password => 'vagrant'
+	},
 	:installer => :apt
 }
+
+server :dev, {
+	:host => "dev",
+	:user => 'dev',
+	:ssh => {
+		:password => 'dev'
+	},
+	:installer => :apt
+}
+
+target :all, [:dev, :vagrant]
 
 task :foo do
 	sh "echo 'foo'"
@@ -14,4 +29,11 @@ end
 
 task :install => :foobar do
 	install 'zsh'
+	sh "echo 'test'"
+	sh "echo 'test2'"
+	sh "echo 'test3'"
+end
+
+task :broken => :foo do
+	sh "notacommand"
 end

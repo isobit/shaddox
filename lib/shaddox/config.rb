@@ -12,12 +12,14 @@ module Shaddox
 			@tasks = Hash.new
 			@repos = Hash.new
 
+			@targets[:localhost] = Localhost.new
+
 			instance_eval(File.read(doxfilename), doxfilename)
 		end
 
-		def explode_target(targetkey)
+		def explode_target(target_key)
 			exploded = []
-			[@targets[targetkey]].flatten.each do |target|
+			[@targets[target_key]].flatten.each do |target|
 				if target.is_a? Symbol
 					exploded += explode_target(target)
 				else
@@ -27,10 +29,10 @@ module Shaddox
 			exploded
 		end
 
-		def invoke(taskkey, targetkey)
-			package = @packages[packagekey]
-			explode_target(targetkey).each do |target|
-				package.invoke(target)
+		def invoke(task_key, target_key)
+			explode_target(target_key).each do |target|
+				puts "Deploying to :#{target_key}..."
+				target.deploy(ShadowScript.new(self, target, task_key))
 			end
 		end
 
