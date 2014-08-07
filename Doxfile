@@ -1,0 +1,17 @@
+server :vagrant, {
+	:address => "localhost",
+	:port => 22,
+	:installer => :apt
+}
+
+task :foo do
+	sh "echo 'foo'"
+end
+
+task :foobar => :foo do
+	sh "echo 'bar'"
+end
+
+task :install => :foobar do
+	install 'zsh'
+end

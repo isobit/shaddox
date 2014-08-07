@@ -10,6 +10,7 @@ module Shaddox
 		#	:port
 		#	:identity_file
 		#	:ssh_options
+		#	:installer
 		#
 		def initialize(info)
 			# TODO: Validate info

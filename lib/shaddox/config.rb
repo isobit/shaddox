@@ -12,9 +12,6 @@ module Shaddox
 			@tasks = Hash.new
 			@repos = Hash.new
 
-			## Defaults ##
-			self.target :script, Script.instance
-
 			instance_eval(File.read(doxfilename), doxfilename)
 		end
 
@@ -68,8 +65,18 @@ module Shaddox
 		# ### Add a package
 		# blk: A block of code to be executed in the context of the target[s]
 		#	specified when running Shaddox
-		def package(key, &blk)
-			@packages[key] = Package.new(self, &blk)
+		#	key can be bound to a list to define dependencies, like with Rake
+		#	task :example => :some_dep do ...
+		#	task :example => [:dep1, :dep2] do ...
+		def task(arg, &block)
+			if arg.is_a? Hash
+				fail "Task Argument Error" if arg.size != 1
+				key, deps = arg.map { |k, v| [k, v] }.first
+				@tasks[key] = Task.new(block, deps)
+			else
+				fail "Task Argument Error" if !arg.is_a? Symbol
+				@tasks[arg] = Task.new(block, [])
+			end
 		end
 
 	end
