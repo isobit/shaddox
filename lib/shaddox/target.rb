@@ -1,32 +1,51 @@
 module Shaddox
 	class Target
-		def new_shell_actor
+		def new_actor
 			raise "new_actor method must be implemented by Target subclass"
 		end
-		def deploy(shadow_script)
-			lockfile = '/tmp/shaddox.lock'
-			new_shell_actor do
-				unlocked = run "mkdir #{lockfile}", "Creating lock..."
+		def deploy(shadow_script, tmpdir = '/tmp/shaddox')
+			shadow_script_path = "#{tmpdir}/shadow_script.rb"
+			# Everything inside this block is handled by the target's actor (typically an SSH session)
+			new_actor do
+
+				# Try to create tmpdir:
+				unlocked = run "mkdir #{tmpdir}", "=> Creating temporary directory"
+
+				# Abort if the tmpdir already exists
 				raise "Shaddox is already running on this machine. Try again later." unless unlocked
+
 				begin
+					# Initial provisioning to ensure that we have everyting we need to execute a shadow script:
 					ruby_installed = exec 'type ruby >/dev/null 2>&1'
-					raise "Ruby is required to use shaddox. Please install it manually." unless ruby_installed
+					raise "Ruby is required to use shaddox. Please install it manually.".red unless ruby_installed
 					gem_installed = exec 'type gem >/dev/null 2>&1'
-					raise "Gem is required to use shaddox. Please install it manually." unless gem_installed
-					if !exec('gem list shaddox -i')
+					raise "Gem is required to use shaddox. Please install it manually.".red unless gem_installed
+					shaddox_installed = lambda { exec 'gem list shaddox -i' }
+					unless shaddox_installed.call()
 						run "gem install shaddox", "Installing shaddox..."
 					end
-					shaddox_installed = exec 'gem list shaddox -i'
-					raise "Shaddox could not be automatically installed. Please install manually with 'gem install shaddox'." unless shaddox_installed
-					puts "TODO: Do shadow deployment here!"
+					unless shaddox_installed.call()
+						raise "Shaddox could not be automatically installed. Please install manually with 'gem install shaddox'."
+					end
+
+					# Push the shadow script to tmpdir:
+					puts "Writing shadow script to target..."
+					write_file(shadow_script.script, shadow_script_path)
+
+					# Execute the shadow script:
+					#run "ruby #{shadow_script_path}", 'Executing shadow script...'
+
+				rescue Exception => e
+					raise e
 				ensure
-					run("rm -r #{lockfile}", "Removing lock...") unless !exec("test -e #{lockfile}")
+					# Make sure the tmpdir is removed even if the provisioning fails:
+					#run("rm -r #{tmpdir}", "Removing temporary directory...") unless !exec("test -e #{tmpdir}")
 				end
 			end
 		end
 	end
 
-	class ShellActor
+	class Actor
 		def initialize(&block)
 			instance_eval(&block)
 		end
@@ -35,11 +54,14 @@ module Shaddox
 			info = msg if msg
 			puts "=> #{info}"
 			result = exec(command)
-			raise error_msg if result == nil
+			raise error_msg.red if result == nil
 			result
 		end
-		def exec
-			raise "exec method must be implemented by Actor subclass"
+		def exec(command)
+			raise "exec method must be implemented by Actor subclass".red
+		end
+		def write_file(content, dest_path)
+			raise "write_file method must be implemented by Actor subclass".red
 		end
 	end
 
@@ -50,9 +72,12 @@ module Shaddox
 		def installer
 			:apt
 		end
-		class LocalActor < ShellActor
+		class LocalActor < Actor
 			def exec(command)
 				system(command)
+			end
+			def write_file(content, dest_path)
+				File.open(dest_path, 'w') { |f| f.write(content) }
 			end
 		end
 	end
@@ -72,10 +97,10 @@ module Shaddox
 			# TODO: Validate info
 			init_settings(info)
 		end
-		def new_shell_actor(&block)
+		def new_actor(&block)
 			SSHActor.new(host, user, ssh, &block)
 		end
-		class SSHActor < ShellActor
+		class SSHActor < Actor
 			def initialize(host, user, ssh_opts, &block)
 				Net::SSH.start(host, user, ssh_opts) do |ssh|
 					@ssh = ssh
@@ -83,7 +108,6 @@ module Shaddox
 				end
 			end
 			def exec(command)
-				#success, stdout, stderr, exit_code, exit_signal = nil
 				exit_code = nil
 				@ssh.open_channel do |channel|
 					channel.exec(command) do |ch, success|
@@ -95,6 +119,10 @@ module Shaddox
 				end
 				@ssh.loop
 				exit_code == 0 ? true : false
+			end
+			def write_file(content, dest_path)
+				require 'shellwords'
+				run "echo #{Shellwords.shellescape(content)} > #{dest_path}"
 			end
 		end
 	end

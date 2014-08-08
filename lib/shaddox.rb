@@ -1,4 +1,5 @@
 require "shaddox/version"
+require "shaddox/output"
 require "shaddox/settings"
 require "shaddox/target"
 require "shaddox/task"
