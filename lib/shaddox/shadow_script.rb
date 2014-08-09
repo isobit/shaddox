@@ -1,13 +1,23 @@
 module Shaddox
 	class ShadowScript
 		attr_reader :script
-		def initialize(config, target, task_key)
+		def initialize(config, task_key, opts)
+			@installer = opts[:installer]
+			unless @installer
+				require 'highline/import'
+				choose do |menu|
+					menu.prompt = "Please select a package manager to use:"
+
+					menu.choice(:apt) { @installer = :apt }
+					menu.choice(:brew) { @installer = :brew }
+				end
+			end
+
 			@config = config
-			@target = target
 			@cast_tasks = []
 			@script = %Q{
 require 'shaddox'
-Shaddox::Shadow.new(:installer => :#{target.installer}) do
+Shaddox::Shadow.new(:installer => :#{@installer}) do
 	## begin generated shadow ##
 			}
 			cast(task_key)

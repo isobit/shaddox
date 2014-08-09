@@ -25,6 +25,7 @@ module Shaddox
 		end
 
 		def install(package)
+			raise "No installer specified for this target!".red unless @installer
 			puts "Installing #{package} using #{@installer}"
 			unless system("type #{package} >/dev/null 2>&1")
 				case @installer

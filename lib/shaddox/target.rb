@@ -76,9 +76,6 @@ module Shaddox
 		def new_actor(&block)
 			LocalActor.new(&block)
 		end
-		def installer
-			:apt
-		end
 		class LocalActor < Actor
 			def exec(command)
 				system(command)
