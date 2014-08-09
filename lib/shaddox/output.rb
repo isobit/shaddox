@@ -16,7 +16,15 @@ class String
 		colorize(33)
 	end
 
+	def blue
+		colorize(34)
+	end
+
 	def pink
 		colorize(35)
+	end
+
+	def cyan
+		colorize(36)
 	end
 end

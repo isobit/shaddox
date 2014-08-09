@@ -1,5 +1,5 @@
 module Shaddox
-	class RunError < StandardError ; end
+	class ShadowError < StandardError ; end
 	class Shadow
 		require 'fileutils'
 		include FileUtils
@@ -21,19 +21,25 @@ module Shaddox
 			line = "#{command}"
 			line += " #{args.join(" ")}" if args
 			system(command, *args)
-			raise RunError, "#{line} failed".red unless $? == 0 or !@required
+			raise ShadowError, "#{line} failed" unless $? == 0 or !@required
+		end
+
+		def exists(path)
+			system("test -e #{path}")
 		end
 
 		def install(package)
-			raise "No installer specified for this target!".red unless @installer
-			puts "Installing #{package} using #{@installer}"
+			raise ShadowError, "No installer specified for this target!" unless @installer
 			unless system("type #{package} >/dev/null 2>&1")
+				puts "=> Installing #{package} using #{@installer}"
 				case @installer
 				when :apt
 					sh "sudo apt-get install -y #{package}"
 				when :brew
 					sh "brew install #{package}"
 				end
+			else
+				puts "=> #{package} is already installed."
 			end
 		end
 	end

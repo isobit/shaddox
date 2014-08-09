@@ -1,9 +1,10 @@
 module Shaddox
 	class ShadowScript
 		attr_reader :script
-		def initialize(config, task_key, opts)
-			@installer = opts[:installer]
+		def initialize(config, task_key, target, opts = {})
+			@installer = opts[:installer] || target.installer if target.respond_to? :installer
 			unless @installer
+				puts "No package manager is defined for this target.".yellow
 				require 'highline/import'
 				choose do |menu|
 					menu.prompt = "Please select a package manager to use:"

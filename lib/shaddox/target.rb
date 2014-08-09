@@ -1,4 +1,5 @@
 module Shaddox
+	class TargetError < StandardError ; end
 	class Target
 		def new_actor
 			raise "new_actor method must be implemented by Target subclass"
@@ -16,20 +17,20 @@ module Shaddox
 				unlocked = run "mkdir #{tmpdir}", "Creating temporary directory"
 
 				# Abort if the tmpdir already exists
-				raise "Shaddox is already running on this machine. Try again later.".red unless unlocked
+				raise TargetError, "Shaddox is already running on this machine. Try again later." unless unlocked
 
 				begin
 					# Initial provisioning to ensure that we have everyting we need to execute a shadow script:
 					ruby_installed = exec 'type ruby >/dev/null 2>&1'
-					raise "Ruby is required to use shaddox. Please install it manually." unless ruby_installed
+					raise TargetError, "Ruby is required to use shaddox. Please install it manually." unless ruby_installed
 					gem_installed = exec 'type gem >/dev/null 2>&1'
-					raise "Gem is required to use shaddox. Please install it manually." unless gem_installed
+					raise TargetError, "Gem is required to use shaddox. Please install it manually." unless gem_installed
 					shaddox_installed = lambda { exec 'gem list shaddox -i' }
 					unless shaddox_installed.call()
 						run "gem install shaddox", "Installing shaddox..."
 					end
 					unless shaddox_installed.call()
-						raise "Shaddox could not be automatically installed. Please install manually with 'gem install shaddox'."
+						raise TargetError, "Shaddox could not be automatically installed. Please install manually with 'gem install shaddox'."
 					end
 
 					# Push the shadow script to tmpdir:
@@ -39,12 +40,11 @@ module Shaddox
 					# Execute the shadow script:
 					run "ruby #{shadow_script_path}", 'Executing shadow script'
 
-				rescue Exception => e
-					puts "ERROR: " + e.red
-					exit
-				ensure
+					rm_tmpdir.call() unless opts[:keep_tmp_dir]
+				rescue => e
 					# Make sure the tmpdir is removed even if the provisioning fails:
 					rm_tmpdir.call() unless opts[:keep_tmp_dir]
+					raise e
 				end
 			end
 		end
@@ -65,10 +65,10 @@ module Shaddox
 			return result
 		end
 		def exec(command)
-			raise "exec method must be implemented by Actor subclass".red
+			raise "exec method must be implemented by Actor subclass"
 		end
 		def write_file(content, dest_path)
-			raise "write_file method must be implemented by Actor subclass".red
+			raise "write_file method must be implemented by Actor subclass"
 		end
 	end
 
