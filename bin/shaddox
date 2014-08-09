@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'shaddox'
+task = ARGV[0]
+target = ARGV[1] || 'localhost'
+config = Shaddox::Config.new
+config.invoke(task.to_sym, target.to_sym)

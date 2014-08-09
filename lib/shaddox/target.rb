@@ -3,23 +3,27 @@ module Shaddox
 		def new_actor
 			raise "new_actor method must be implemented by Target subclass"
 		end
-		def deploy(shadow_script, tmpdir = '/tmp/shaddox')
+		def deploy(shadow_script, opts)
+			tmpdir = opts[:tmpdir] || '/tmp/shaddox'
 			shadow_script_path = "#{tmpdir}/shadow_script.rb"
 			# Everything inside this block is handled by the target's actor (typically an SSH session)
 			new_actor do
 
+				rm_tmpdir = lambda { run("rm -r #{tmpdir}", "Removing temporary directory") unless !exec("test -e #{tmpdir}") }
+				rm_tmpdir.call() if opts[:force]
+
 				# Try to create tmpdir:
-				unlocked = run "mkdir #{tmpdir}", "=> Creating temporary directory"
+				unlocked = run "mkdir #{tmpdir}", "Creating temporary directory"
 
 				# Abort if the tmpdir already exists
-				raise "Shaddox is already running on this machine. Try again later." unless unlocked
+				raise "Shaddox is already running on this machine. Try again later.".red unless unlocked
 
 				begin
 					# Initial provisioning to ensure that we have everyting we need to execute a shadow script:
 					ruby_installed = exec 'type ruby >/dev/null 2>&1'
-					raise "Ruby is required to use shaddox. Please install it manually.".red unless ruby_installed
+					raise "Ruby is required to use shaddox. Please install it manually." unless ruby_installed
 					gem_installed = exec 'type gem >/dev/null 2>&1'
-					raise "Gem is required to use shaddox. Please install it manually.".red unless gem_installed
+					raise "Gem is required to use shaddox. Please install it manually." unless gem_installed
 					shaddox_installed = lambda { exec 'gem list shaddox -i' }
 					unless shaddox_installed.call()
 						run "gem install shaddox", "Installing shaddox..."
@@ -29,17 +33,18 @@ module Shaddox
 					end
 
 					# Push the shadow script to tmpdir:
-					puts "Writing shadow script to target..."
+					puts "=> Writing shadow script"
 					write_file(shadow_script.script, shadow_script_path)
 
 					# Execute the shadow script:
-					#run "ruby #{shadow_script_path}", 'Executing shadow script...'
+					run "ruby #{shadow_script_path}", 'Executing shadow script'
 
 				rescue Exception => e
-					raise e
+					puts "ERROR: " + e.red
+					exit
 				ensure
 					# Make sure the tmpdir is removed even if the provisioning fails:
-					#run("rm -r #{tmpdir}", "Removing temporary directory...") unless !exec("test -e #{tmpdir}")
+					rm_tmpdir.call() unless opts[:keep_tmp_dir]
 				end
 			end
 		end
@@ -49,13 +54,15 @@ module Shaddox
 		def initialize(&block)
 			instance_eval(&block)
 		end
-		def run(command, msg = nil, error_msg = "Command failed, aborting!")
+		def run(command, msg = nil, error_msg = "Command failed, aborting!", opts = {})
+			quiet = opts[:quiet] || false
+
 			info = command
 			info = msg if msg
-			puts "=> #{info}"
+			puts "=> #{info}" unless quiet
 			result = exec(command)
 			raise error_msg.red if result == nil
-			result
+			return result
 		end
 		def exec(command)
 			raise "exec method must be implemented by Actor subclass".red
@@ -66,7 +73,7 @@ module Shaddox
 	end
 
 	class Localhost < Target
-		def new_shell_actor(&block)
+		def new_actor(&block)
 			LocalActor.new(&block)
 		end
 		def installer
@@ -122,7 +129,7 @@ module Shaddox
 			end
 			def write_file(content, dest_path)
 				require 'shellwords'
-				run "echo #{Shellwords.shellescape(content)} > #{dest_path}"
+				run("echo #{Shellwords.shellescape(content)} > #{dest_path}", :quiet => true)
 			end
 		end
 	end

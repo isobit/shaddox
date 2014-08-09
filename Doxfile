@@ -37,3 +37,7 @@ end
 task :broken => :foo do
 	sh "notacommand"
 end
+
+task :sudo do
+	sh "sudo echo 'this is a sudo echo'"
+end

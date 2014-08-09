@@ -21,17 +21,18 @@ module Shaddox
 			line = "#{command}"
 			line += " #{args.join(" ")}" if args
 			system(command, *args)
-			raise RunError, "#{line} failed" unless $? == 0 or !@required
+			raise RunError, "#{line} failed".red unless $? == 0 or !@required
 		end
 
 		def install(package)
 			puts "Installing #{package} using #{@installer}"
-			return if sh("type #{package} >/dev/null 2>&1")
-			case @installer
-			when :apt
-				sh "sudo apt-get install -y #{package}"
-			when :brew
-				sh "brew install #{package}"
+			unless system("type #{package} >/dev/null 2>&1")
+				case @installer
+				when :apt
+					sh "sudo apt-get install -y #{package}"
+				when :brew
+					sh "brew install #{package}"
+				end
 			end
 		end
 	end

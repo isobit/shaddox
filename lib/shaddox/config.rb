@@ -1,9 +1,9 @@
 module Shaddox
 	class Config
 		attr_accessor :servers, :targets, :repos, :tasks
-		def initialize(doxfilename = "Doxfile")
+		def initialize(doxfilename = "./Doxfile")
 			if !File.exists?(doxfilename)
-				puts "Doxfile could not be found."
+				puts "Doxfile could not be found.".red
 				exit(1)
 			end
 
@@ -29,10 +29,15 @@ module Shaddox
 			exploded
 		end
 
-		def invoke(task_key, target_key)
+		def invoke(task_key, target_key, opts = {})
 			explode_target(target_key).each do |target|
 				puts "Deploying to :#{target_key}..."
-				target.deploy(ShadowScript.new(self, target, task_key))
+				begin
+					target.deploy(ShadowScript.new(self, target, task_key), opts)
+					puts "Provisioning on :#{target_key} complete.".green
+				rescue Exception => e
+					puts "Provisioning on :#{target_key} failed. Please check the logs.".red
+				end
 			end
 		end
 
