@@ -8,6 +8,10 @@ server :vagrant, {
 	:installer => :apt
 }
 
+repo :test, {
+	:url => "https://github.com/joshglendenning/profile.git"
+}
+
 task :foo do
 	sh "echo 'foo'"
 end
@@ -21,6 +25,7 @@ task :install => :foobar do
 	sh "echo 'test'"
 	sh "echo 'test2'"
 	sh "echo 'test3'"
+	repo_clone :test, "dest"
 end
 
 task :broken => :foo do
@@ -29,4 +34,8 @@ end
 
 task :sudo do
 	sh "sudo echo 'this is a sudo echo'"
+end
+
+task :git_clone do
+	repo_clone :test, "~/test"
 end

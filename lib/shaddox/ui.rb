@@ -1,38 +1,22 @@
-module Shaddox
-	def warn(msg)
-		puts msg.yellow
-	end
+def prefix(level)
+	"=" * level + "> "
+end
+def warn(msg, level = 0)
+	puts prefix(level) + msg.yellow
+end
 
-	def err(msg)
-		puts msg.red
-	end
+def err(msg, level = 0)
+	puts prefix(level) + msg.red
+end
 
-	def info(msg)
-		puts msg
+def info(msg, level = 0)
+	out =  prefix(level)
+	if level == 0
+		out += msg.blue
+	else
+		out += msg
 	end
-
-	class Shadow
-		def warn(msg)
-			warn("	#{msg}")
-		end
-		def err(msg)
-			err("	#{msg}")
-		end
-		def info(msg)
-			info("	=> #{msg}")
-		end
-	end
-	class Config
-		def warn(msg)
-			warn("> #{msg}")
-		end
-		def err(msg)
-			err("> #{msg}")
-		end
-		def info(msg)
-			info("> #{msg}")
-		end
-	end
+	puts out
 end
 
 class String
@@ -63,5 +47,9 @@ class String
 
 	def cyan
 		colorize(36)
+	end
+
+	def gray
+		colorize(90)
 	end
 end

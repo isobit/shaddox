@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["joshglendenning"]
   spec.email         = ["joshglendenning@gmail.com"]
   spec.summary       = %q{Ruby system provisioner.}
-  spec.description   = %q{}
+  spec.description   = %q{Ruby-based system provisioning tool.}
   spec.homepage      = "http://nominaltech.com"
   spec.license       = "MIT"
 

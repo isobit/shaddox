@@ -10,11 +10,18 @@ module Shaddox
 			# Everything inside this block is handled by the target's actor (typically an SSH session)
 			new_actor do
 
-				rm_tmpdir = lambda { run("rm -r #{tmpdir}", "Removing temporary directory") unless !exec("test -e #{tmpdir}") }
+				rm_tmpdir = lambda { 
+					unless !exec("test -e #{tmpdir}")
+						info "Removing #{tmpdir}", 1
+						exec("rm -r #{tmpdir}")
+					end
+				}
+
 				rm_tmpdir.call() if opts[:force]
 
 				# Try to create tmpdir:
-				unlocked = run "mkdir #{tmpdir}", "Creating temporary directory"
+				info "Creating #{tmpdir}", 1
+				unlocked = exec "mkdir #{tmpdir}"
 
 				# Abort if the tmpdir already exists
 				raise TargetError, "Shaddox is already running on this machine. Try again later." unless unlocked
@@ -26,19 +33,24 @@ module Shaddox
 					gem_installed = exec 'type gem >/dev/null'
 					raise TargetError, "Gem is required to use shaddox. Please install it manually." unless gem_installed
 					shaddox_installed = lambda { exec 'gem list shaddox -i' }
-					unless shaddox_installed.call()
-						run "gem install shaddox", "Installing shaddox..."
+					if shaddox_installed.call()
+						info "Updating shaddox...", 1
+						exec "sudo gem update shaddox"
+					else
+						info "Installing shaddox...", 1
+						exec "sudo gem install shaddox"
 					end
 					unless shaddox_installed.call()
 						raise TargetError, "Shaddox could not be automatically installed. Please install manually with 'gem install shaddox'."
 					end
 
 					# Push the shadow script to tmpdir:
-					puts "=> Writing shadow script"
+					info "Writing shadow script", 1
 					write_file(shadow_script.script, shadow_script_path)
 
 					# Execute the shadow script:
-					run "ruby #{shadow_script_path}", 'Executing shadow script'
+					info "Executing shadow script", 1
+					raise TargetError, "Shadow script was not executed successfully." unless exec "ruby #{shadow_script_path}"
 
 					rm_tmpdir.call() unless opts[:keep_tmp_dir]
 				rescue => e
@@ -53,16 +65,6 @@ module Shaddox
 	class Actor
 		def initialize(&block)
 			instance_eval(&block)
-		end
-		def run(command, msg = nil, error_msg = "Command failed, aborting!", opts = {})
-			quiet = opts[:quiet] || false
-
-			info = command
-			info = msg if msg
-			puts "=> #{info}" unless quiet
-			result = exec(command)
-			raise error_msg.red if result == nil
-			return result
 		end
 		def exec(command)
 			raise "exec method must be implemented by Actor subclass"
@@ -97,9 +99,12 @@ module Shaddox
 		#	:ssh  (required for authentication)
 		#	:installer
 		#
+		attr_reader :host, :user, :ssh, :installer
 		def initialize(info)
-			# TODO: Validate info
-			init_settings(info)
+			@host = info[:host]
+			@user = info[:user]
+			@ssh = info[:ssh]
+			@installer = info[:installer]
 		end
 		def new_actor(&block)
 			SSHActor.new(host, user, ssh, &block)
@@ -115,15 +120,15 @@ module Shaddox
 				exit_code = nil
 				@ssh.open_channel do |channel|
 					channel.exec(command) do |ch, success|
-						return nil if !success
-						ch.on_request('exit-status') do |ch, data|
-							exit_code = data.read_long
-						end
+						#return nil if !success
 						ch.on_data do |ch, data|
 							$stdout.print data
 							if data =~ /^\[sudo\] password for user:/
 								channel.send_data(gets.strip)
 							end
+						end
+						ch.on_request('exit-status') do |ch, data|
+							exit_code = data.read_long
 						end
 					end
 				end
@@ -132,7 +137,7 @@ module Shaddox
 			end
 			def write_file(content, dest_path)
 				require 'shellwords'
-				run("echo #{Shellwords.shellescape(content)} > #{dest_path}", :quiet => true)
+				exec "echo #{Shellwords.shellescape(content)} > #{dest_path}"
 			end
 		end
 	end

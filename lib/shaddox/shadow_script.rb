@@ -1,31 +1,21 @@
 module Shaddox
 	class ShadowScript
 		attr_reader :script
-		def initialize(config, task_key, target, opts = {})
-
-			# Get target's specified installer:
-			@installer = opts[:installer] || target.installer if target.respond_to? :installer
-			unless @installer
-				puts "No package manager is defined for this target.".yellow
-				require 'highline/import'
-				choose do |menu|
-					menu.prompt = "Please select a package manager to use:"
-
-					menu.choice(:apt) { @installer = :apt }
-					menu.choice(:brew) { @installer = :brew }
-				end
-			end
-
+		def initialize(config, task_key, opts = {})
 			# Initialize properties
+			@installer = opts[:installer]
 			@config = config
 			@cast_tasks = []
 
 			# Generate script
+			params = "{}"
+			params = "{:installer => :#{@installer}}" if @installer
 			@script = %Q{
 require 'shaddox'
-Shaddox::Shadow.new(:installer => :#{@installer}) do
+Shaddox::Shadow.new(#{params}) do
 	## begin generated shadow ##
 			}
+			add_repos
 			cast(task_key)
 			@script += %Q{
 	## end generated shadow ##
@@ -50,6 +40,18 @@ end
 	#{task.to_source}
 			}
 			@cast_tasks.push(task_key)
+		end
+
+		## add_repos
+		# Retrieves all repos from the @config and ensures their data is copied
+		# to the script for use by tasks.
+		def add_repos
+			@script += %Q(
+	@repos = {)
+			@config.repos.each do |key, repo|
+				@script += ":#{key} => #{repo.to_source}"
+			end
+			@script += %Q(})
 		end
 	end
 end

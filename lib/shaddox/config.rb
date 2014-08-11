@@ -33,7 +33,10 @@ module Shaddox
 			explode_target(target_key).each do |target|
 				info "Deploying to #{target_key}..."
 				begin
-					target.deploy(ShadowScript.new(self, task_key, target), opts)
+					script_opts = {}
+					script_opts[:installer] = target.installer if target.respond_to? :installer
+					script = ShadowScript.new(self, task_key, script_opts)
+					target.deploy(script, opts)
 					info "Provisioning on :#{target_key} complete.".green
 				rescue TargetError => e
 					err "Provisioning on :#{target_key} failed:".red

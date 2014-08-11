@@ -26,7 +26,7 @@ module Shaddox
 		def sh(command, args = nil)
 			line = "#{command}"
 			line += " #{args.join(" ")}" if args
-			info "=> Running '#{line}' in '#{Dir.pwd}'" if @verbose
+			info "Running '#{line}' in '#{Dir.pwd}'", 1 if @verbose
 			system(command, *args)
 			raise "#{line} failed" unless $? == 0 or !@required
 		end
@@ -43,18 +43,40 @@ module Shaddox
 		end
 
 		def ln_s(source, dest, opts = {})
-			info "=> Linking '#{source}' to '#{dest}'" if @verbose
+			info "Linking '#{source}' to '#{dest}'", 1 if @verbose
 			FileUtils::ln_s(source.exp_path, dest.exp_path, opts)
 		end
 
 		def mkdir(path)
-			info "=> Ensuring directory '#{path}' exists" if @verbose
+			info "Ensuring directory '#{path}' exists", 1 if @verbose
 			FileUtils::mkdir_p(path.exp_path)
 		end
 
+		def repo_clone(repo_key, path)
+			repo = @repos[repo_key]
+			cd path do
+				case repo.vcs
+				when :git
+					sh "git clone #{repo.url}"
+				end
+			end
+		end
+
 		def install(package)
+			unless @installer
+				warn "No package manager is defined for this target.", 1
+				puts "-------------------"
+				require 'highline/import'
+				choose do |menu|
+					menu.prompt = "Please select a package manager to use:"
+
+					menu.choice(:apt) { @installer = :apt }
+					menu.choice(:brew) { @installer = :brew }
+				end
+				puts "-------------------"
+			end
 			raise "No installer specified for this target!" unless @installer
-			info "=> Ensuring #{package} is installed with #{@installer}" if @verbose
+			info "Ensuring #{package} is installed with #{@installer}", 1 if @verbose
 			unless system("type #{package} >/dev/null 2>&1")
 				case @installer
 				when :apt
