@@ -9,3 +9,4 @@
 
 gem build shaddox.gemspec
 gem install shaddox-*
+rm shaddox-*

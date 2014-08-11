@@ -46,7 +46,7 @@ module Shaddox
 			system("test -e #{path.exp_path}")
 		end
 
-		def ln_s(source, dest, opts = [])
+		def ln_s(source, dest, opts = {})
 			puts "=> Linking '#{source}' to '#{dest}'" if @verbose
 			FileUtils::ln_s(source.exp_path, dest.exp_path, opts)
 		end

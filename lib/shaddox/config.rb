@@ -38,7 +38,7 @@ module Shaddox
 				rescue TargetError => e
 					puts "> Provisioning on :#{target_key} failed:".red
 					puts e.message.red
-				rescue Exception => e
+				rescue => e
 					puts "> Provisioning on :#{target_key} failed:".red
 					puts e.message.red
 				end
