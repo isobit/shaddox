@@ -5,7 +5,7 @@ module Shaddox
 			@block = block
 			@deps = [deps].flatten
 		end
-		
+
 		def to_source
 			require 'sourcify'
 			if @block

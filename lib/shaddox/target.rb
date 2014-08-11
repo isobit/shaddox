@@ -21,9 +21,9 @@ module Shaddox
 
 				begin
 					# Initial provisioning to ensure that we have everyting we need to execute a shadow script:
-					ruby_installed = exec 'type ruby >/dev/null 2>&1'
+					ruby_installed = exec 'type ruby >/dev/null'
 					raise TargetError, "Ruby is required to use shaddox. Please install it manually." unless ruby_installed
-					gem_installed = exec 'type gem >/dev/null 2>&1'
+					gem_installed = exec 'type gem >/dev/null'
 					raise TargetError, "Gem is required to use shaddox. Please install it manually." unless gem_installed
 					shaddox_installed = lambda { exec 'gem list shaddox -i' }
 					unless shaddox_installed.call()
