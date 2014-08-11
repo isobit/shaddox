@@ -8,7 +8,11 @@ module Shaddox
 		
 		def to_source
 			require 'sourcify'
-			@block.to_source(:strip_enclosure => true)
+			if @block
+				@block.to_source(:strip_enclosure => true)
+			else
+				"# Empty block #"
+			end
 		end
 	end
 end

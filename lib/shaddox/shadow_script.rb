@@ -28,6 +28,7 @@ end
 			}
 		end
 		def cast(task_key)
+			puts task_key
 			task = @config.tasks[task_key]
 			task.deps.each do |dep_key|
 				cast(dep_key) if !@cast_tasks.include? dep_key
