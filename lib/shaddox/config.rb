@@ -31,15 +31,15 @@ module Shaddox
 
 		def invoke(task_key, target_key, opts = {})
 			explode_target(target_key).each do |target|
-				puts "> Deploying to #{target_key}..."
+				info "Deploying to #{target_key}..."
 				begin
 					target.deploy(ShadowScript.new(self, task_key, target), opts)
-					puts "> Provisioning on :#{target_key} complete.".green
+					info "Provisioning on :#{target_key} complete.".green
 				rescue TargetError => e
-					puts "> Provisioning on :#{target_key} failed:".red
+					err "Provisioning on :#{target_key} failed:".red
 					puts e.message.red
 				rescue => e
-					puts "> Provisioning on :#{target_key} failed:".red
+					err "Provisioning on :#{target_key} failed:".red
 					puts e.message.red
 				end
 			end

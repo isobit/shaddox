@@ -8,17 +8,6 @@ server :vagrant, {
 	:installer => :apt
 }
 
-server :dev, {
-	:host => "dev",
-	:user => 'dev',
-	:ssh => {
-		:password => 'dev'
-	},
-	:installer => :apt
-}
-
-target :all, [:dev, :vagrant]
-
 task :foo do
 	sh "echo 'foo'"
 end

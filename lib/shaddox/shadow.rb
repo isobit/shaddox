@@ -17,10 +17,6 @@ module Shaddox
 			instance_eval(&block)
 		end
 
-		def warn(msg)
-			puts msg.yellow
-		end
-
 		def optional(&block)
 			@required = false
 			instance_eval(&block)
@@ -30,7 +26,7 @@ module Shaddox
 		def sh(command, args = nil)
 			line = "#{command}"
 			line += " #{args.join(" ")}" if args
-			puts "=> Running '#{line}' in '#{Dir.pwd}'" if @verbose
+			info "=> Running '#{line}' in '#{Dir.pwd}'" if @verbose
 			system(command, *args)
 			raise "#{line} failed" unless $? == 0 or !@required
 		end
@@ -47,18 +43,18 @@ module Shaddox
 		end
 
 		def ln_s(source, dest, opts = {})
-			puts "=> Linking '#{source}' to '#{dest}'" if @verbose
+			info "=> Linking '#{source}' to '#{dest}'" if @verbose
 			FileUtils::ln_s(source.exp_path, dest.exp_path, opts)
 		end
 
 		def mkdir(path)
-			puts "=> Ensuring directory '#{path}' exists" if @verbose
+			info "=> Ensuring directory '#{path}' exists" if @verbose
 			FileUtils::mkdir_p(path.exp_path)
 		end
 
 		def install(package)
 			raise "No installer specified for this target!" unless @installer
-			puts "=> Ensuring #{package} is installed with #{@installer}" if @verbose
+			info "=> Ensuring #{package} is installed with #{@installer}" if @verbose
 			unless system("type #{package} >/dev/null 2>&1")
 				case @installer
 				when :apt

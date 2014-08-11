@@ -119,6 +119,12 @@ module Shaddox
 						ch.on_request('exit-status') do |ch, data|
 							exit_code = data.read_long
 						end
+						ch.on_data do |ch, data|
+							$stdout.print data
+							if data =~ /^\[sudo\] password for user:/
+								channel.send_data(gets.strip)
+							end
+						end
 					end
 				end
 				@ssh.loop
