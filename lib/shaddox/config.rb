@@ -1,8 +1,9 @@
 module Shaddox
 	class Config
 		attr_accessor :servers, :targets, :repos, :tasks
-		def initialize(doxfilename = "./Doxfile")
-			if !File.exists?(doxfilename)
+		def initialize(doxfile)
+			doxfile = './Doxfile' unless doxfile
+			if !File.exists?(doxfile)
 				puts "Doxfile could not be found.".red
 				exit(1)
 			end
@@ -12,9 +13,11 @@ module Shaddox
 			@tasks = Hash.new
 			@repos = Hash.new
 
+			# :local and :localhost point to local by default
 			@targets[:localhost] = Localhost.new
+			@targets[:local] = :localhost
 
-			instance_eval(File.read(doxfilename), doxfilename)
+			instance_eval(File.read(doxfile), doxfile)
 		end
 
 		def explode_target(target_key)
@@ -31,6 +34,7 @@ module Shaddox
 
 		def invoke(task_key, target_key, opts = {})
 			explode_target(target_key).each do |target|
+				raise "The target :#{target_key} could not be found. Please check your Doxfile.".red unless target
 				info "Deploying to #{target_key}..."
 				begin
 					script_opts = {}

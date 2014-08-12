@@ -30,7 +30,7 @@ end
 		def cast(task_key)
 			task = @config.tasks[task_key]
 			if !task
-				raise "The task :#{task_key} could not be found. Please check your Doxfile and try again."
+				raise "The task :#{task_key} could not be found. Please check your Doxfile and try again.".red
 			end
 			task.deps.each do |dep_key|
 				cast(dep_key) if !@cast_tasks.include? dep_key

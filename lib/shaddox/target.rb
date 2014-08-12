@@ -128,6 +128,12 @@ module Shaddox
 								channel.send_data(gets.strip)
 							end
 						end
+						ch.on_extended_data do |ch, data|
+							$stderr.print data
+							if data =~ /^\[sudo\] password for user:/
+								channel.send_data(gets.strip)
+							end
+						end
 						ch.on_request('exit-status') do |ch, data|
 							exit_code = data.read_long
 						end

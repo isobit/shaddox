@@ -33,6 +33,7 @@ module Shaddox
 
 		def cd(path, &block)
 			current_path = Dir.pwd
+			mkdir(path)
 			FileUtils.cd(path.exp_path)
 			instance_eval(&block)
 			FileUtils.cd(current_path)
