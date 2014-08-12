@@ -11,7 +11,7 @@ module Shaddox
 			new_actor do
 
 				rm_tmpdir = lambda { 
-					unless !exec("test -e #{tmpdir}")
+					unless !exec("test -e #{tmpdir} >/dev/null")
 						info "Removing #{tmpdir}", 1
 						exec("rm -r #{tmpdir}")
 					end
@@ -32,13 +32,14 @@ module Shaddox
 					raise TargetError, "Ruby is required to use shaddox. Please install it manually." unless ruby_installed
 					gem_installed = exec 'type gem >/dev/null'
 					raise TargetError, "Gem is required to use shaddox. Please install it manually." unless gem_installed
-					shaddox_installed = lambda { exec 'gem list shaddox -i' }
+					shaddox_installed = lambda { exec 'gem list shaddox -i >/dev/null' }
 					if shaddox_installed.call()
 						info "Updating shaddox...", 1
-						exec "sudo gem update shaddox"
+						updated = exec "gem update shaddox"
+						warn "Shaddox could not be automatically updated. Please update it manually with 'gem update shaddox'.", 1 unless updated
 					else
 						info "Installing shaddox...", 1
-						exec "sudo gem install shaddox"
+						exec "gem install shaddox"
 					end
 					unless shaddox_installed.call()
 						raise TargetError, "Shaddox could not be automatically installed. Please install manually with 'gem install shaddox'."

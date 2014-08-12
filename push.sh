@@ -10,3 +10,4 @@
 gem build shaddox.gemspec
 gem push shaddox-*
 rm shaddox-*
+gem update shaddox
