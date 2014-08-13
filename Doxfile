@@ -8,8 +8,9 @@ server :vagrant, {
 	:installer => :apt
 }
 
-repo :test, {
-	:url => "https://github.com/joshglendenning/profile.git"
+repo :profile, {
+	:url => "https://github.com/joshglendenning/profile.git",
+	:shared => 'tmp'
 }
 
 task :foo do
@@ -20,12 +21,10 @@ task :foobar => :foo do
 	sh "echo 'bar'"
 end
 
-task :install => :foobar do
-	install 'zsh'
-	sh "echo 'test'"
-	sh "echo 'test2'"
-	sh "echo 'test3'"
-	repo_clone :test, "dest"
+task :install do
+	repo_deploy :profile, "~/repo_test/profile" do
+		ln_s './current', '/var/www/profile'
+	end
 end
 
 task :broken => :foo do
@@ -34,8 +33,4 @@ end
 
 task :sudo do
 	sh "sudo echo 'this is a sudo echo'"
-end
-
-task :git_clone do
-	repo_clone :test, "~/test"
 end

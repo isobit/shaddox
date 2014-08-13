@@ -9,5 +9,5 @@
 
 gem build shaddox.gemspec
 gem push shaddox-*
+sudo gem install shaddox-*
 rm shaddox-*
-gem update shaddox

@@ -24,7 +24,7 @@ module Shaddox
 				unlocked = exec "mkdir #{tmpdir}"
 
 				# Abort if the tmpdir already exists
-				raise TargetError, "Shaddox is already running on this machine. Try again later." unless unlocked
+				raise TargetError, "A shadow script is already running on this machine. Try again later." unless unlocked
 
 				begin
 					# Initial provisioning to ensure that we have everyting we need to execute a shadow script:
@@ -35,14 +35,17 @@ module Shaddox
 					shaddox_installed = lambda { exec 'gem list shaddox -i >/dev/null' }
 					if shaddox_installed.call()
 						info "Updating shaddox...", 1
-						updated = exec "gem update shaddox"
+						updated = exec "gem update shaddox", :verbose => false
+						updated = exec "sudo gem update shaddox" unless updated
 						warn "Shaddox could not be automatically updated. Please update it manually with 'gem update shaddox'.", 1 unless updated
 					else
 						info "Installing shaddox...", 1
-						exec "gem install shaddox"
+						installed = exec "gem install shaddox", :verbose => false
+						installed = exec "sudo gem install shaddox" unless installed
+						warn "Shaddox could not be automatically installed. Please update it manually with 'gem update shaddox'.", 1 unless installed
 					end
 					unless shaddox_installed.call()
-						raise TargetError, "Shaddox could not be automatically installed. Please install manually with 'gem install shaddox'."
+						raise TargetError, "Shaddox was not found on this target."
 					end
 
 					# Push the shadow script to tmpdir:
@@ -54,7 +57,7 @@ module Shaddox
 					raise TargetError, "Shadow script was not executed successfully." unless exec "ruby #{shadow_script_path}"
 
 					rm_tmpdir.call() unless opts[:keep_tmp_dir]
-				rescue => e
+				rescue Exception => e
 					# Make sure the tmpdir is removed even if the provisioning fails:
 					rm_tmpdir.call() unless opts[:keep_tmp_dir]
 					raise e
@@ -67,7 +70,7 @@ module Shaddox
 		def initialize(&block)
 			instance_eval(&block)
 		end
-		def exec(command)
+		def exec(command, opts = {})
 			raise "exec method must be implemented by Actor subclass"
 		end
 		def write_file(content, dest_path)
@@ -80,7 +83,7 @@ module Shaddox
 			LocalActor.new(&block)
 		end
 		class LocalActor < Actor
-			def exec(command)
+			def exec(command, opts = {})
 				system(command)
 			end
 			def write_file(content, dest_path)
@@ -117,24 +120,24 @@ module Shaddox
 					super(&block)
 				end
 			end
-			def exec(command)
+			def exec(command, opts = {:verbose => true})
+				require 'highline/import'
 				exit_code = nil
 				@ssh.open_channel do |channel|
-					channel.exec(command) do |ch, success|
-						#return nil if !success
-						ch.on_data do |ch, data|
-							$stdout.print data
-							if data =~ /^\[sudo\] password for user:/
-								channel.send_data(gets.strip)
+					channel.request_pty do |c, success|
+						raise "SSH could not obtain a pty." unless success
+						channel.exec(command)
+						channel.on_data do |c_, data|
+							if data =~ /\[sudo\]/ || data =~ /Password/i
+								warn "Target is asking for password: ", 1
+								$stdout.print data
+								pass = ask("") { |q| q.echo = false }
+								channel.send_data "#{pass}\n"
+							else
+								$stdout.print data if opts[:verbose]
 							end
 						end
-						ch.on_extended_data do |ch, data|
-							$stderr.print data
-							if data =~ /^\[sudo\] password for user:/
-								channel.send_data(gets.strip)
-							end
-						end
-						ch.on_request('exit-status') do |ch, data|
+						channel.on_request('exit-status') do |ch, data|
 							exit_code = data.read_long
 						end
 					end

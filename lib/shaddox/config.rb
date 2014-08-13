@@ -39,6 +39,7 @@ module Shaddox
 				begin
 					script_opts = {}
 					script_opts[:installer] = target.installer if target.respond_to? :installer
+					script_opts[:debug] = opts[:debug] if opts[:debug]
 					script = ShadowScript.new(self, task_key, script_opts)
 					target.deploy(script, opts)
 					info "Provisioning on :#{target_key} complete.".green
@@ -48,6 +49,7 @@ module Shaddox
 				rescue => e
 					err "Provisioning on :#{target_key} failed:".red
 					puts e.message.red
+					e.backtrace.each { |line| puts line }
 				end
 			end
 		end

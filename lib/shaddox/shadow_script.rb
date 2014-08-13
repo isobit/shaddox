@@ -4,15 +4,19 @@ module Shaddox
 		def initialize(config, task_key, opts = {})
 			# Initialize properties
 			@installer = opts[:installer]
+			@debug = opts[:debug]
+
 			@config = config
 			@cast_tasks = []
 
 			# Generate script
-			params = "{}"
-			params = "{:installer => :#{@installer}}" if @installer
+			params = []
+			params.push(":installer => :#{@installer}") if @installer
+			params.push(":debug => #{@debug}") if @debug
+
 			@script = %Q{
 require 'shaddox'
-Shaddox::Shadow.new(#{params}) do
+Shaddox::Shadow.new({#{params.join(',')}}) do
 	## begin generated shadow ##
 			}
 			add_repos

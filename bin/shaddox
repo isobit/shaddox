@@ -12,8 +12,8 @@ OptionParser.new do |opts|
 
 	opts.banner = "Usage: shaddox [task] [target] [options]"
 
-	opts.on("-v", "--[no]-verbose", "Run verbosely") do |v|
-		options[:verbose] = v
+	opts.on("--debug", "Run verbosely") do |v|
+		options[:debug] = v
 	end
 
 	opts.on("--force", "Override lock on target") do |b|
