@@ -137,6 +137,7 @@ module Shaddox
 
 					menu.choice(:apt) { @installer = :apt }
 					menu.choice(:brew) { @installer = :brew }
+					menu.choice(:pacman) { @installer = :pacman }
 				end
 				puts "-------------------"
 			end
@@ -149,6 +150,8 @@ module Shaddox
 					exec "sudo apt-get install -y #{package}"
 				when :brew
 					exec "brew install #{package}"
+				when :pacman
+					exec "pacman -S --noconfirm #{package}"
 				end
 			end
 			raise "#{package} could not be installed." unless package_installed.call()
