@@ -20,7 +20,7 @@ module Shaddox
 			@required = true
 		end
 
-		def self.run(block)
+		def run(block)
 			instance_eval(&block) unless !block
 		end
 
