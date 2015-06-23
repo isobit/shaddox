@@ -24,7 +24,7 @@ module Shaddox
 			begin
 				task = @tasks[task_key.to_sym]
 				return if task.done
-				task.deps.each { |dep| invoke(dep, opts) }
+				task.deps.each { |dep| invoke(dep) }
 				info "[#{task_key}] Starting..."
 				@pvr.run(task.block)
 				task.done = true
