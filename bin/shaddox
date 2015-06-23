@@ -20,6 +20,10 @@ OptionParser.new do |opts|
 		@doxfile = f
 	end
 
+	opts.on_tail("-v", "--version", "Show version number") do
+		puts Shaddox::VERSION
+		exit
+	end
 	opts.on_tail("-h", "--help", "Show help text") do
 		puts opts
 		exit
