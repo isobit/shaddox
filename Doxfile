@@ -1,36 +1,19 @@
-server :vagrant, {
-	:host => "localhost",
-	:user => 'vagrant',
-	:ssh => {
-		:port => 2222,
-		:password => 'vagrant'
-	},
-	:installer => :apt
-}
-
-repo :profile, {
-	:url => "https://github.com/joshglendenning/profile.git",
-	:shared => 'tmp'
-}
-
 task :foo do
-	sh "echo 'foo'"
+	exec "echo 'foo'"
 end
 
 task :foobar => :foo do
-	sh "echo 'bar'"
-end
-
-task :install do
-	repo_deploy :profile, "~/repo_test/profile" do
-		ln_s './current', '/var/www/profile'
-	end
+	exec "echo 'bar'"
 end
 
 task :broken => :foo do
-	sh "notacommand"
+	exec "notacommand"
 end
 
 task :sudo do
-	sh "sudo echo 'this is a sudo echo'"
+	exec "sudo echo 'this is a sudo echo'"
+end
+
+task :install do
+	install "git"
 end

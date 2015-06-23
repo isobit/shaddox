@@ -10,25 +10,13 @@ options = {
 
 OptionParser.new do |opts|
 
-	opts.banner = "Usage: shaddox [task] [target] [options]"
+	opts.banner = "Usage: shaddox [task] [options]"
 
-	opts.on("--debug", "Run verbosely") do |v|
-		options[:debug] = v
+	opts.on('-v', '--verboase', "Run verbosely") do
+		options[:verbose] = true
 	end
 
-	opts.on("--force", "Override lock on target") do |b|
-		options[:force] = b
-	end
-
-	opts.on("--keep-tmp-dir", "Don't remove the tmpdir after deployment") do |b|
-		options[:keep_tmp_dir] = b
-	end
-
-	opts.on("--tmpdir PATH", "Specify the tmp directory to use (default '/tmp/shaddox')") do |dir|
-		options[:tmpdir] = dir
-	end
-
-	opts.on('-f PATH', '--doxfile', "Specify doxfile") do |f|
+	opts.on('--doxfile', "Specify doxfile") do |f|
 		@doxfile = f
 	end
 
@@ -39,8 +27,7 @@ OptionParser.new do |opts|
 
 end.parse!
 
-task = ARGV[0]
-target = ARGV[1] || 'localhost'
+task = ARGV[0] || :default
 
 config = Shaddox::Config.new(@doxfile)
-config.invoke(task.to_sym, target.to_sym, options)
+config.invoke(task, options)
