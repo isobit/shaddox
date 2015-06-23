@@ -5,7 +5,7 @@ module Shaddox
 
 		attr_accessor :tasks
 
-		def initialize(doxfile)
+		def initialize(doxfile, opts = {})
 			doxfile = './Doxfile' unless doxfile
 			if !File.exists?(doxfile)
 				puts "Doxfile could not be found.".red
@@ -13,19 +13,20 @@ module Shaddox
 			end
 
 			@tasks = Hash.new
+			@pvr = Provisioner.new(opts)
 
 			instance_eval(File.read(doxfile), doxfile)
 		end
 
 		# Methods ============================================
 
-		def invoke(task_key, opts)
+		def invoke(task_key)
 			begin
 				task = @tasks[task_key.to_sym]
 				return if task.done
 				task.deps.each { |dep| invoke(dep, opts) }
 				info "[#{task_key}] Starting..."
-				Provisioner.new(task.block, opts)
+				@pvr.run(task.block)
 				task.done = true
 				info "[#{task_key}] Done".green
 			rescue => e

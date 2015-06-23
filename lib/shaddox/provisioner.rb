@@ -15,9 +15,12 @@ module Shaddox
 
 		# Init ====================================================
 
-		def initialize(block, opts = {:verbose => false})
+		def initialize(opts = {:verbose => false})
 			@verbose = opts[:verbose]
 			@required = true
+		end
+
+		def self.run(block)
 			instance_eval(&block) unless !block
 		end
 
@@ -59,7 +62,7 @@ module Shaddox
 		def ln_s(source, dest, opts = {})
 			mkdir(dest.exp_path.parent)
 			Dir.glob(source.exp_path).each { |src|
-				info "Linking '#{source.exp_path}' to '#{dest.exp_path}'", 1 if @verbose
+				info "Linking '#{src.exp_path}' to '#{dest.exp_path}'", 1 if @verbose
 				FileUtils::ln_s(src, dest.exp_path, opts)
 			}
 		end

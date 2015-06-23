@@ -12,8 +12,8 @@ OptionParser.new do |opts|
 
 	opts.banner = "Usage: shaddox [task] [options]"
 
-	opts.on('-v', '--verboase', "Run verbosely") do
-		options[:verbose] = true
+	opts.on('-s', '--silent', "Be less verbose") do
+		options[:verbose] = false
 	end
 
 	opts.on('--doxfile', "Specify doxfile") do |f|
@@ -29,5 +29,5 @@ end.parse!
 
 task = ARGV[0] || :default
 
-config = Shaddox::Config.new(@doxfile)
-config.invoke(task, options)
+config = Shaddox::Config.new(@doxfile, options)
+config.invoke(task)
