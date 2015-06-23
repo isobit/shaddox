@@ -18,7 +18,7 @@ module Shaddox
 		def initialize(block, opts = {:verbose => false})
 			@verbose = opts[:verbose]
 			@required = true
-			instance_eval(&block)
+			instance_eval(&block) unless !block
 		end
 
 		# Methods =================================================
