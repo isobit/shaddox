@@ -29,6 +29,18 @@ module Shaddox
 			@required = true
 		end
 
+		def exists(path)
+			system("test -e #{path.exp_path}")
+		end
+
+		def exists_d(path)
+			system("test -d #{path.exp_path}")
+		end
+
+		def exists_f(path)
+			system("test -f #{path.exp_path}")
+		end
+
 		def exec(command, args = nil)
 			cmd = "#{command}"
 			cmd += " #{args.join(" ")}" if args
@@ -47,8 +59,10 @@ module Shaddox
 		def ln_s(source, dest, opts = {})
 			mkdir(source.exp_path.parent)
 			mkdir(dest.exp_path.parent)
-			info "Linking '#{source.exp_path}' to '#{dest.exp_path}'", 1 if @verbose
-			FileUtils::ln_s(source.exp_path, dest.exp_path, opts)
+			Dir.glob(source.exp_path).each { |src|
+				info "Linking '#{src}' to '#{dest.exp_path}'", 1 if @verbose
+				FileUtils::ln_s(src, dest.exp_path, opts)
+			}
 		end
 
 		def mkdir(path)
