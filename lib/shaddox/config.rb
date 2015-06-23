@@ -24,12 +24,12 @@ module Shaddox
 				task = @tasks[task_key.to_sym]
 				return if task.done
 				task.deps.each { |dep| invoke(dep, opts) }
-				info "Running task: #{task_key}"
+				info "[#{task_key}] Starting..."
 				Provisioner.new(task.block, opts)
 				task.done = true
-				info "Completed task: #{task_key}.".green
+				info "[#{task_key}] Done".green
 			rescue => e
-				err "Task failed: #{task_key}".red
+				err "[#{task_key}] Failed".red
 				puts e.message.red
 				e.backtrace.each { |line| puts line }
 			end
