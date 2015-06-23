@@ -36,10 +36,10 @@ module Shaddox
   end
 
   class AptInstaller < Installer
-    def initialize(pvr)
-      super(pvr)
-      @pvr.exec("sudo apt-get update")
-    end
+    # def initialize(pvr)
+    #   super(pvr)
+    #   @pvr.exec("sudo apt-get update")
+    # end
     def install(package)
       return if installed?(package)
       @pvr.exec("sudo apt-get install #{package}")
@@ -48,10 +48,10 @@ module Shaddox
   end
 
   class BrewInstaller < Installer
-    def initialize(pvr)
-      super(pvr)
-      @pvr.exec("brew update")
-    end
+    # def initialize(pvr)
+    #   super(pvr)
+    #   @pvr.exec("brew update")
+    # end
     def install(package)
       return if installed?(package)
       @pvr.exec("brew install #{package}")
@@ -60,10 +60,10 @@ module Shaddox
   end
 
   class PacmanInstaller < Installer
-    def initialize(pvr)
-      super(pvr)
-      @pvr.exec("pacman -Sy")
-    end
+    # def initialize(pvr)
+    #   super(pvr)
+    #   @pvr.exec("pacman -Sy")
+    # end
     def install(package)
       return if installed?(package)
       @pvr.exec("pacman -S #{package}")

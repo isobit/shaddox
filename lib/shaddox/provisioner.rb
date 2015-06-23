@@ -1,7 +1,4 @@
 class String
-	def exp_path
-		File.expand_path(self)
-	end
 	def parent
 		File.split(self)[0]
 	end
@@ -30,15 +27,15 @@ module Shaddox
 		end
 
 		def exists(path)
-			system("test -e #{path.exp_path}")
+			system("test -e #{path}")
 		end
 
 		def exists_d(path)
-			system("test -d #{path.exp_path}")
+			system("test -d #{path}")
 		end
 
 		def exists_f(path)
-			system("test -f #{path.exp_path}")
+			system("test -f #{path}")
 		end
 
 		def exec(command, args = nil)
@@ -51,23 +48,23 @@ module Shaddox
 
 		def cd(path, &block)
 			mkdir(path)
-			FileUtils.cd(path.exp_path) do
+			FileUtils.cd(path) do
 				instance_eval(&block)
 			end
 		end
 
 		def ln_s(source, dest, opts = {})
-			mkdir(source.exp_path.parent)
-			mkdir(dest.exp_path.parent)
-			Dir.glob(source.exp_path).each { |src|
-				info "Linking '#{src}' to '#{dest.exp_path}'", 1 if @verbose
-				FileUtils::ln_s(src, dest.exp_path, opts)
+			mkdir(source.parent)
+			mkdir(dest.parent)
+			Dir.glob(source).each { |src|
+				info "Linking '#{src}' to '#{dest}'", 1 if @verbose
+				FileUtils::ln_s(src, dest, opts)
 			}
 		end
 
 		def mkdir(path)
 			info "Ensuring directory '#{path}' exists", 1 if @verbose
-			FileUtils::mkdir_p(path.exp_path)
+			FileUtils::mkdir_p(path)
 		end
 
 		def availiable?(cmd)
