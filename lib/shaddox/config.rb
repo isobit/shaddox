@@ -20,12 +20,14 @@ module Shaddox
 		# Methods ============================================
 
 		def invoke(task_key, opts)
-			info "Starting task: #{task_key}"
 			begin
 				task = @tasks[task_key.to_sym]
+				return if task.done
 				task.deps.each { |dep| invoke(dep, opts) }
+				info "Running task: #{task_key}"
 				Provisioner.new(task.block, opts)
-				info "Task completed: #{task_key}.".green
+				task.done = true
+				info "Completed task: #{task_key}.".green
 			rescue => e
 				err "Task failed: #{task_key}".red
 				puts e.message.red
