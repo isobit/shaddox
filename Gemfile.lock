@@ -1,0 +1,19 @@
+PATH
+  remote: .
+  specs:
+    shaddox (0.1.0)
+      highline (~> 1.7.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    highline (1.7.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  shaddox!
+
+BUNDLED WITH
+   1.10.4
