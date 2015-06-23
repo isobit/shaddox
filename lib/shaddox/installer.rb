@@ -5,6 +5,7 @@ module Shaddox
       return AptInstaller.new(pvr) if pvr.availiable? "apt-get"
       return BrewInstaller.new(pvr) if pvr.availiable? "brew"
       return PacmanInstaller.new(pvr) if pvr.availiable? "pacman"
+      return YumInstaller.new(pvr) if pvr.availiable? "yum"
       warn "Installer could not be automatically identified.", 1
       require 'highline/import'
       choose do |menu|
@@ -67,6 +68,14 @@ module Shaddox
     def install(package)
       return if installed?(package)
       @pvr.exec("pacman -S #{package}")
+      raise "Could not install #{package}" unless installed?(package)
+    end
+  end
+
+  class YumInstaller < Installer
+    def install(package)
+      return if installed?(package)
+      @pvr.exec("yum install #{package}")
       raise "Could not install #{package}" unless installed?(package)
     end
   end
