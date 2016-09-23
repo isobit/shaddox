@@ -1,4 +1,4 @@
-# Shaddox
+# Shaddox (DEPRECATED)
 
 This project is entirely unfinished. Please don't actually use it.
 
